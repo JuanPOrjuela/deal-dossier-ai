@@ -1,96 +1,29 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
-
-@theme {
-  /* Warm neutral "ink" scale — deliberately not blue-tinted slate/zinc */
-  --color-ink-950: #0b0a08;
-  --color-ink-900: #131210;
-  --color-ink-850: #17150f;
-  --color-ink-800: #1e1c17;
-  --color-ink-700: #2b2822;
-  --color-ink-600: #423e35;
-  --color-ink-500: #6b6558;
-  --color-ink-400: #948d7c;
-  --color-ink-300: #b5ad9a;
-  --color-ink-200: #d6cfbe;
-  --color-ink-100: #ece6d8;
-  --color-ink-50:  #f7f4ec;
-
-  /* Primary accent — bronze/gold, evokes "deal value" without default-Tailwind blue */
-  --color-gold-700: #7a541c;
-  --color-gold-600: #966928;
-  --color-gold-500: #b6822f;
-  --color-gold-400: #cf9c47;
-  --color-gold-300: #e2ba6f;
-  --color-gold-200: #eed6a4;
-  --color-gold-100: #f7ead0;
-
-  /* Secondary accent — muted teal, for links / cool contrast */
-  --color-teal-600: #2f6f63;
-  --color-teal-500: #3d8a7b;
-  --color-teal-400: #5aa696;
-
-  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
-  --font-sans: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, monospace;
-}
+@import "tailwindcss";
 
 @layer base {
   body {
-    background-color: var(--color-ink-950);
-    color: var(--color-ink-100);
-    font-family: var(--font-sans);
-    background-image:
-      radial-gradient(ellipse 60% 40% at 15% 0%, rgba(150, 105, 40, 0.07), transparent),
-      radial-gradient(ellipse 50% 35% at 100% 20%, rgba(47, 111, 99, 0.05), transparent);
-    background-attachment: fixed;
+    background-color: #020617;
+    color: #f8fafc;
+    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 }
 
-/* Animations */
+/* Custom keyframes */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleUp {
-  from { opacity: 0; transform: scale(0.97); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes slideLeft {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
 .animate-fadeIn {
-  animation: fadeIn 0.35s ease-out forwards;
+  animation: fadeIn 0.25s ease-out forwards;
 }
 
 .animate-scaleUp {
   animation: scaleUp 0.2s ease-out forwards;
-}
-
-.animate-slideLeft {
-  animation: slideLeft 0.3s ease-out forwards;
-}
-
-.font-display {
-  font-family: var(--font-display);
-}
-
-/* Subtle scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--color-ink-950);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--color-ink-700);
-  border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ink-600);
 }
