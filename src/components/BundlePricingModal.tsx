@@ -2,7 +2,7 @@ import React from 'react';
 import { X, Check, ShieldCheck, Zap, Sparkles } from 'lucide-react';
 import type { Language } from '../i18n/translations';
 import { translations } from '../i18n/translations';
-import { getCheckoutUrl, isCheckoutConfigured, type CheckoutPlan } from '../services/checkout';
+import { getCheckoutUrl, type CheckoutPlan } from '../services/checkout';
 import type { PlanId } from '../services/entitlements';
 
 interface BundlePricingModalProps {
@@ -18,7 +18,6 @@ interface BundlePricingModalProps {
 export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
   isOpen,
   onClose,
-  onRequireAuth,
   userId,
   userEmail,
   currentPlan,
@@ -29,17 +28,8 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
   if (!isOpen) return null;
 
   const goToCheckout = (plan: CheckoutPlan) => {
-    if (!userId) {
-      onClose();
-      onRequireAuth();
-      return;
-    }
-    const url = getCheckoutUrl(plan, userId, userEmail);
-    if (!url) {
-      console.warn('[Cloud AIs] LemonSqueezy checkout is not configured -- see .env.example');
-      return;
-    }
-    window.location.href = url;
+    const url = getCheckoutUrl(plan, userId || undefined, userEmail);
+    window.open(url, '_blank');
   };
 
   const isAllAccessActive = currentPlan === 'all_access' || currentPlan === 'lifetime';
@@ -68,11 +58,6 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
           <p className="text-slate-400 text-xs sm:text-sm mt-2">
             {t.desc}
           </p>
-          {!isCheckoutConfigured && (
-            <p className="text-[11px] text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded-md p-2 mt-3 inline-block">
-              LemonSqueezy checkout is not configured yet -- see .env.example.
-            </p>
-          )}
         </div>
 
         {/* Pricing Cards Grid */}
