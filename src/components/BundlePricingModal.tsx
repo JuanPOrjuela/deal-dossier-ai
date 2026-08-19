@@ -85,8 +85,8 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
               <p className="text-xs text-slate-400 mt-1">{t.singleDesc}</p>
 
               <div className="my-5">
-                <span className="text-3xl font-black text-slate-50 font-mono">$14</span>
-                <span className="text-xs text-slate-400"> {t.singlePriceNote}</span>
+                <span className="text-3xl font-black text-white font-mono">$7</span>
+                <span className="text-xs text-slate-400"> / {language === 'es' ? 'mes' : 'month'}</span>
               </div>
 
               <ul className="space-y-2.5 text-xs text-slate-300">
@@ -128,7 +128,7 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
               <p className="text-xs text-slate-400 mt-1">{t.allAccessDesc}</p>
 
               <div className="my-5">
-                <span className="text-3xl font-black text-slate-50 font-mono">$39</span>
+                <span className="text-3xl font-black text-slate-50 font-mono">$19</span>
                 <span className="text-xs text-slate-400"> {t.allAccessPriceNote}</span>
               </div>
 
@@ -173,7 +173,7 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
               <p className="text-xs text-slate-400 mt-1">{t.lifetimeDesc}</p>
 
               <div className="my-5">
-                <span className="text-3xl font-black text-slate-50 font-mono">$149</span>
+                <span className="text-3xl font-black text-slate-50 font-mono">$39</span>
                 <span className="text-xs text-slate-400"> {t.lifetimePriceNote}</span>
               </div>
 
