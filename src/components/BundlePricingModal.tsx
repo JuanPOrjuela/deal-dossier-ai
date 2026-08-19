@@ -70,7 +70,7 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
               <p className="text-xs text-slate-400 mt-1">{t.singleDesc}</p>
 
               <div className="my-5">
-                <span className="text-3xl font-black text-white font-mono">$7</span>
+                <span className="text-3xl font-black text-slate-50 font-mono">$7</span>
                 <span className="text-xs text-slate-400"> / {language === 'es' ? 'mes' : 'month'}</span>
               </div>
 

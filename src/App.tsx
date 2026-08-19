@@ -14,6 +14,8 @@ import { HistoryDrawer, type HistoryItem } from './components/HistoryDrawer';
 import { BundlePricingModal } from './components/BundlePricingModal';
 import { SettingsModal } from './components/SettingsModal';
 import { AuthModal } from './components/AuthModal';
+import { FaqSection } from './components/FaqSection';
+import { ContactSection } from './components/ContactSection';
 import type { DossierData, ContentForgeData, TalentPulseData, CommerceLensData, AppId, ContentChannel } from './types';
 import type { Language } from './i18n/translations';
 import { translations } from './i18n/translations';
@@ -392,6 +394,9 @@ export const App: React.FC = () => {
             )}
           </>
         )}
+
+        <FaqSection language={language} />
+        <ContactSection language={language} activeApp={activeApp} defaultEmail={session?.user.email} />
 
       </main>
 
