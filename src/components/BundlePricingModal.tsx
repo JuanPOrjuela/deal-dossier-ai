@@ -1,39 +1,48 @@
 import React from 'react';
 import { X, Check, ShieldCheck, Zap, Sparkles } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import type { Language } from '../i18n/translations';
 import { translations } from '../i18n/translations';
+import { getCheckoutUrl, isCheckoutConfigured, type CheckoutPlan } from '../services/checkout';
+import type { PlanId } from '../services/entitlements';
 
 interface BundlePricingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpgradeToPro: () => void;
-  isPro: boolean;
+  onRequireAuth: () => void;
+  userId: string | null;
+  userEmail?: string;
+  currentPlan: PlanId;
   language: Language;
 }
 
 export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
   isOpen,
   onClose,
-  onUpgradeToPro,
-  isPro,
+  onRequireAuth,
+  userId,
+  userEmail,
+  currentPlan,
   language
 }) => {
   const t = translations[language].pricing;
 
   if (!isOpen) return null;
 
-  const handleSimulateUpgrade = () => {
-    confetti({
-      particleCount: 120,
-      spread: 70,
-      origin: { y: 0.6 }
-    });
-    onUpgradeToPro();
-    setTimeout(() => {
+  const goToCheckout = (plan: CheckoutPlan) => {
+    if (!userId) {
       onClose();
-    }, 1400);
+      onRequireAuth();
+      return;
+    }
+    const url = getCheckoutUrl(plan, userId, userEmail);
+    if (!url) {
+      console.warn('[Cloud AIs] LemonSqueezy checkout is not configured -- see .env.example');
+      return;
+    }
+    window.location.href = url;
   };
+
+  const isAllAccessActive = currentPlan === 'all_access' || currentPlan === 'lifetime';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
@@ -59,6 +68,11 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
           <p className="text-slate-400 text-xs sm:text-sm mt-2">
             {t.desc}
           </p>
+          {!isCheckoutConfigured && (
+            <p className="text-[11px] text-amber-300 bg-amber-900/20 border border-amber-700/40 rounded-md p-2 mt-3 inline-block">
+              LemonSqueezy checkout is not configured yet -- see .env.example.
+            </p>
+          )}
         </div>
 
         {/* Pricing Cards Grid */}
@@ -92,10 +106,11 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
             </div>
 
             <button
-              onClick={handleSimulateUpgrade}
-              className="mt-6 w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer"
+              onClick={() => goToCheckout('single')}
+              disabled={currentPlan === 'single'}
+              className="mt-6 w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
-              {t.singleCta}
+              {currentPlan === 'single' ? t.allAccessActive : t.singleCta}
             </button>
           </div>
 
@@ -138,10 +153,11 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
             </div>
 
             <button
-              onClick={handleSimulateUpgrade}
-              className="mt-6 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition cursor-pointer"
+              onClick={() => goToCheckout('allAccess')}
+              disabled={isAllAccessActive}
+              className="mt-6 w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 transition cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
-              {isPro ? t.allAccessActive : t.allAccessCta}
+              {isAllAccessActive ? t.allAccessActive : t.allAccessCta}
             </button>
           </div>
 
@@ -178,10 +194,11 @@ export const BundlePricingModal: React.FC<BundlePricingModalProps> = ({
             </div>
 
             <button
-              onClick={handleSimulateUpgrade}
-              className="mt-6 w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition cursor-pointer"
+              onClick={() => goToCheckout('lifetime')}
+              disabled={currentPlan === 'lifetime'}
+              className="mt-6 w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition cursor-pointer disabled:opacity-50 disabled:cursor-default"
             >
-              {t.lifetimeCta}
+              {currentPlan === 'lifetime' ? t.allAccessActive : t.lifetimeCta}
             </button>
           </div>
 

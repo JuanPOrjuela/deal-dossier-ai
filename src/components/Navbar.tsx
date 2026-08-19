@@ -1,11 +1,14 @@
 import React from 'react';
-import { Key, History, Zap, Sun, Moon, Cloud } from 'lucide-react';
-import type { UserCredits } from '../types';
+import { Key, History, Zap, Sun, Moon, Cloud, LogIn, LogOut, UserCircle2 } from 'lucide-react';
 import type { Language } from '../i18n/translations';
 import { translations } from '../i18n/translations';
+import type { Entitlement } from '../services/entitlements';
 
 interface NavbarProps {
-  credits: UserCredits;
+  entitlement: Entitlement | null;
+  userEmail: string | null;
+  onOpenAuth: () => void;
+  onSignOut: () => void;
   onOpenPricing: () => void;
   onOpenSettings: () => void;
   onToggleHistory: () => void;
@@ -17,7 +20,10 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
-  credits,
+  entitlement,
+  userEmail,
+  onOpenAuth,
+  onSignOut,
   onOpenPricing,
   onOpenSettings,
   onToggleHistory,
@@ -28,6 +34,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleTheme
 }) => {
   const t = translations[language].shell;
+
+  const planLabel = (() => {
+    if (!entitlement) return t.creditsFree;
+    if (entitlement.status === 'active' && (entitlement.plan === 'all_access' || entitlement.plan === 'lifetime')) {
+      return t.creditsPro;
+    }
+    if (entitlement.status === 'active' && entitlement.plan === 'single') {
+      return t.apps[entitlement.singleAppId ?? 'dealDossier'].name;
+    }
+    return `${Math.max(entitlement.freeCreditsLimit - entitlement.freeCreditsUsed, 0)} ${t.creditsFree}`;
+  })();
 
   return (
     <header className="border-b border-slate-800 bg-slate-950/95 backdrop-blur-md sticky top-0 z-40 h-16">
@@ -102,22 +119,22 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* History */}
           <button
             onClick={onToggleHistory}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 border border-slate-800 hover:border-slate-600 hover:text-slate-50 transition cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 border border-slate-800 hover:border-slate-600 hover:text-slate-50 transition cursor-pointer"
           >
             <History className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{t.savedItems}</span>
+            <span>{t.savedItems}</span>
             {historyCount > 0 && (
               <span className="text-slate-500">({historyCount})</span>
             )}
           </button>
 
-          {/* Credits */}
+          {/* Credits / Plan */}
           <button
             onClick={onOpenPricing}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border border-blue-700/40 text-blue-300 hover:border-blue-600 transition cursor-pointer"
           >
             <Zap className="h-3.5 w-3.5 text-blue-400" />
-            <span>{credits.isPro ? t.creditsPro : `${credits.limit - credits.used} ${t.creditsFree}`}</span>
+            <span>{planLabel}</span>
           </button>
 
           {/* Settings */}
@@ -128,6 +145,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Key className="h-3.5 w-3.5" />
           </button>
+
+          {/* Auth */}
+          {userEmail ? (
+            <button
+              onClick={onSignOut}
+              title={`${t.signOut} (${userEmail})`}
+              className="flex items-center gap-1.5 p-2 rounded-md text-slate-400 hover:text-slate-50 border border-slate-800 hover:border-slate-600 transition cursor-pointer"
+            >
+              <UserCircle2 className="h-3.5 w-3.5" />
+              <LogOut className="h-3.5 w-3.5 sm:hidden" />
+            </button>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white transition cursor-pointer"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">{t.signIn}</span>
+            </button>
+          )}
 
         </div>
 

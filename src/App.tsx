@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { Navbar } from './components/Navbar';
 import { AppSwitcher } from './components/AppSwitcher';
 import { CompanyInput } from './components/CompanyInput';
@@ -12,14 +13,14 @@ import { CommerceLensView } from './components/commerceLens/CommerceLensView';
 import { HistoryDrawer, type HistoryItem } from './components/HistoryDrawer';
 import { BundlePricingModal } from './components/BundlePricingModal';
 import { SettingsModal } from './components/SettingsModal';
-import type { DossierData, ContentForgeData, TalentPulseData, CommerceLensData, UserCredits, AppId, ContentChannel } from './types';
+import { AuthModal } from './components/AuthModal';
+import type { DossierData, ContentForgeData, TalentPulseData, CommerceLensData, AppId, ContentChannel } from './types';
 import type { Language } from './i18n/translations';
 import { translations } from './i18n/translations';
 import { generateDossierWithGemini } from './services/gemini';
-import { generateContentForgeMock } from './services/mock/contentForge';
-import { generateTalentPulseMock } from './services/mock/talentPulse';
-import { generateCommerceLensMock } from './services/mock/commerceLens';
 import { StorageService } from './services/storage';
+import { supabase } from './services/supabaseClient';
+import { fetchEntitlement, signOut as supabaseSignOut, callGenerate, type Entitlement } from './services/entitlements';
 
 const CHANNEL_LABEL: Record<ContentChannel, string> = {
   linkedin: 'LinkedIn',
@@ -32,9 +33,12 @@ export const App: React.FC = () => {
   const [activeApp, setActiveApp] = useState<AppId>('dealDossier');
   const [language, setLanguage] = useState<Language>('es');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [credits, setCredits] = useState<UserCredits>({ used: 0, limit: 5, isPro: false });
   const [apiKey, setApiKey] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Auth + entitlement (server-verified plan/credits -- see src/services/entitlements.ts)
+  const [session, setSession] = useState<Session | null>(null);
+  const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
 
   // DealDossier AI
   const [dossiers, setDossiers] = useState<DossierData[]>([]);
@@ -56,6 +60,15 @@ export const App: React.FC = () => {
   const [isPricingOpen, setIsPricingOpen] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
+
+  const t = translations[language].shell;
+  const tAuthErrors = translations[language].shell;
+
+  const refreshEntitlement = useCallback(async () => {
+    const ent = await fetchEntitlement();
+    setEntitlement(ent);
+  }, []);
 
   useEffect(() => {
     setActiveApp(StorageService.getActiveApp());
@@ -63,10 +76,36 @@ export const App: React.FC = () => {
     setContentForgeHistory(StorageService.getContentForgeHistory());
     setTalentPulseHistory(StorageService.getTalentPulseHistory());
     setCommerceLensHistory(StorageService.getCommerceLensHistory());
-    setCredits(StorageService.getCredits());
     setApiKey(StorageService.getApiKey());
     setTheme(StorageService.getTheme());
-  }, []);
+
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+      if (data.session) refreshEntitlement();
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+      if (newSession) {
+        refreshEntitlement();
+      } else {
+        setEntitlement(null);
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, [refreshEntitlement]);
+
+  // Re-check entitlement whenever the tab regains focus -- catches the case
+  // where the customer just came back from a LemonSqueezy checkout and the
+  // webhook already upgraded their plan server-side.
+  useEffect(() => {
+    const onFocus = () => {
+      if (session) refreshEntitlement();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [session, refreshEntitlement]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('light', theme === 'light');
@@ -82,23 +121,63 @@ export const App: React.FC = () => {
     StorageService.setActiveApp(appId);
   };
 
-  const consumeCredit = (): boolean => {
-    if (!credits.isPro && credits.used >= credits.limit) {
+  const handleSignOut = async () => {
+    await supabaseSignOut();
+    setSession(null);
+    setEntitlement(null);
+  };
+
+  /**
+   * Every generate-error string coming back from the `generate` Edge
+   * Function maps to a user-facing action here: prompt sign-in, open
+   * pricing, or just surface the message. This is the single place that
+   * reacts to the server's entitlement decision.
+   */
+  const handleGenerateError = (error: string, message?: string) => {
+    if (error === 'missing_auth' || error === 'invalid_session') {
+      setIsAuthOpen(true);
+      return;
+    }
+    if (error === 'out_of_credits') {
+      alert(tAuthErrors.outOfCredits);
       setIsPricingOpen(true);
-      return false;
+      return;
     }
-    if (!credits.isPro) {
-      setCredits(StorageService.incrementCredits());
+    if (error === 'wrong_app') {
+      alert(message || tAuthErrors.wrongApp);
+      setIsPricingOpen(true);
+      return;
     }
-    return true;
+    if (error === 'subscription_inactive') {
+      alert(tAuthErrors.subscriptionInactive);
+      setIsPricingOpen(true);
+      return;
+    }
+    alert(translations[language].auth.errorGeneric);
   };
 
   // --- DealDossier AI ---
   const handleAnalyzeDossier = async (url: string, persona: string, offer: string) => {
-    if (!consumeCredit()) return;
     setIsLoading(true);
     try {
-      const newDossier = await generateDossierWithGemini(url, persona, offer, apiKey, language);
+      let newDossier: DossierData;
+      if (apiKey && apiKey.trim().length > 10) {
+        // Bring-your-own Gemini key: always free, always client-side, never
+        // subject to the shared credit pool.
+        newDossier = await generateDossierWithGemini(url, persona, offer, apiKey, language);
+      } else {
+        if (!session) {
+          setIsAuthOpen(true);
+          return;
+        }
+        const result = await callGenerate<DossierData>('dealDossier', language, { url, persona, offer });
+        if (!result.ok) {
+          handleGenerateError(result.error, result.message);
+          return;
+        }
+        newDossier = result.data;
+        refreshEntitlement();
+      }
       setDossiers(StorageService.saveDossier(newDossier));
       setCurrentDossier(newDossier);
     } catch (error) {
@@ -120,12 +199,20 @@ export const App: React.FC = () => {
 
   // --- ContentForge AI ---
   const handleGenerateContentForge = async (topic: string, channel: ContentChannel) => {
-    if (!consumeCredit()) return;
+    if (!session) {
+      setIsAuthOpen(true);
+      return;
+    }
     setIsLoading(true);
     try {
-      const result = await generateContentForgeMock(topic, channel, language);
-      setContentForgeHistory(StorageService.saveContentForgeItem(result));
-      setCurrentContentForge(result);
+      const result = await callGenerate<ContentForgeData>('contentForge', language, { topic, channel });
+      if (!result.ok) {
+        handleGenerateError(result.error, result.message);
+        return;
+      }
+      setContentForgeHistory(StorageService.saveContentForgeItem(result.data));
+      setCurrentContentForge(result.data);
+      refreshEntitlement();
     } finally {
       setIsLoading(false);
     }
@@ -143,12 +230,20 @@ export const App: React.FC = () => {
 
   // --- TalentPulse AI ---
   const handleAnalyzeTalentPulse = async (jobDescription: string, candidateProfile: string) => {
-    if (!consumeCredit()) return;
+    if (!session) {
+      setIsAuthOpen(true);
+      return;
+    }
     setIsLoading(true);
     try {
-      const result = await generateTalentPulseMock(jobDescription, candidateProfile, language);
-      setTalentPulseHistory(StorageService.saveTalentPulseItem(result));
-      setCurrentTalentPulse(result);
+      const result = await callGenerate<TalentPulseData>('talentPulse', language, { jobDescription, candidateProfile });
+      if (!result.ok) {
+        handleGenerateError(result.error, result.message);
+        return;
+      }
+      setTalentPulseHistory(StorageService.saveTalentPulseItem(result.data));
+      setCurrentTalentPulse(result.data);
+      refreshEntitlement();
     } finally {
       setIsLoading(false);
     }
@@ -166,12 +261,20 @@ export const App: React.FC = () => {
 
   // --- CommerceLens AI ---
   const handleAuditCommerceLens = async (competitor: string, yourProduct: string) => {
-    if (!consumeCredit()) return;
+    if (!session) {
+      setIsAuthOpen(true);
+      return;
+    }
     setIsLoading(true);
     try {
-      const result = await generateCommerceLensMock(competitor, yourProduct, language);
-      setCommerceLensHistory(StorageService.saveCommerceLensItem(result));
-      setCurrentCommerceLens(result);
+      const result = await callGenerate<CommerceLensData>('commerceLens', language, { competitor, yourProduct });
+      if (!result.ok) {
+        handleGenerateError(result.error, result.message);
+        return;
+      }
+      setCommerceLensHistory(StorageService.saveCommerceLensItem(result.data));
+      setCurrentCommerceLens(result.data);
+      refreshEntitlement();
     } finally {
       setIsLoading(false);
     }
@@ -188,13 +291,10 @@ export const App: React.FC = () => {
   };
 
   // --- Shared suite state ---
-  const handleUpgradeToPro = () => setCredits(StorageService.setProPlan());
   const handleSaveApiKey = (key: string) => {
     StorageService.setApiKey(key);
     setApiKey(key);
   };
-
-  const t = translations[language].shell;
 
   // Map each app's history into the generic HistoryDrawer shape
   const historyByApp: Record<AppId, { title: string; items: HistoryItem[]; onSelect: (id: string) => void; onDelete: (id: string) => void }> = {
@@ -230,7 +330,10 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white">
 
       <Navbar
-        credits={credits}
+        entitlement={entitlement}
+        userEmail={session?.user.email ?? null}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onSignOut={handleSignOut}
         onOpenPricing={() => setIsPricingOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onToggleHistory={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -312,8 +415,10 @@ export const App: React.FC = () => {
       <BundlePricingModal
         isOpen={isPricingOpen}
         onClose={() => setIsPricingOpen(false)}
-        onUpgradeToPro={handleUpgradeToPro}
-        isPro={credits.isPro}
+        onRequireAuth={() => setIsAuthOpen(true)}
+        userId={session?.user.id ?? null}
+        userEmail={session?.user.email}
+        currentPlan={entitlement?.plan ?? 'free'}
         language={language}
       />
 
@@ -322,6 +427,13 @@ export const App: React.FC = () => {
         onClose={() => setIsSettingsOpen(false)}
         apiKey={apiKey}
         onSaveApiKey={handleSaveApiKey}
+        language={language}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onAuthenticated={refreshEntitlement}
         language={language}
       />
     </div>

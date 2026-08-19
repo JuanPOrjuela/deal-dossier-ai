@@ -67,12 +67,6 @@ export interface DossierData {
   notes?: string;
 }
 
-export interface UserCredits {
-  used: number;
-  limit: number;
-  isPro: boolean;
-}
-
 // ---------------------------------------------------------------------------
 // Cloud AIs suite: shared app identity
 // ---------------------------------------------------------------------------
