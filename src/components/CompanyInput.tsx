@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, SlidersHorizontal, ArrowRight, ShoppingCart, Laptop, Briefcase, FileSearch, BrainCircuit, Mail } from 'lucide-react';
+import { Search, SlidersHorizontal, ArrowRight, ShoppingCart, Laptop, Briefcase, FileSearch, BrainCircuit, Mail, Target } from 'lucide-react';
 import type { Language } from '../i18n/translations';
 import { translations } from '../i18n/translations';
 
@@ -10,7 +10,7 @@ interface CompanyInputProps {
 }
 
 export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading, language }) => {
-  const t = translations[language];
+  const t = translations[language].dealDossier;
   const [url, setUrl] = useState('');
   const [persona, setPersona] = useState(language === 'es' ? 'Director Comercial / VP de Ventas' : 'VP of Sales / Commercial Director');
   const [offer, setOffer] = useState(language === 'es' ? 'Automatización con Inteligencia Artificial y prospección outbound' : 'AI Outbound prospecting automation');
@@ -46,23 +46,26 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
 
       {/* Hero Copy */}
       <div className="mb-8 text-center">
-        <span className="inline-block text-[11px] uppercase tracking-[0.16em] text-gold-400 font-semibold mb-3">
+        <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.16em] text-blue-400 font-semibold mb-3">
+          <Target className="h-3.5 w-3.5" />
           {language === 'es' ? 'Para agencias y equipos comerciales' : 'For agencies & sales teams'}
         </span>
-        <h1 className="font-display text-3xl sm:text-4xl font-medium text-ink-50 tracking-tight leading-tight">
+        <h1 className="font-display text-3xl sm:text-4xl font-medium text-slate-50 tracking-tight leading-tight">
           {language === 'es' ? 'Convierte cualquier sitio web en un plan de ataque comercial' : 'Turn any website into a ready-to-run sales play'}
         </h1>
-        <p className="text-sm text-ink-400 max-w-lg mx-auto mt-3 leading-relaxed">
-          {t.brandTagline}
+        <p className="text-sm text-slate-400 max-w-lg mx-auto mt-3 leading-relaxed">
+          {language === 'es'
+            ? 'El buscador de inteligencia comercial B2B. Escribe cualquier sitio web para generar un informe de venta en segundos.'
+            : 'The B2B deal intelligence search engine. Enter any website to generate a high-converting sales dossier in seconds.'}
         </p>
       </div>
 
       {/* Main Search Bar */}
       <div className="relative max-w-2xl mx-auto">
         <form onSubmit={handleSubmit} className="relative z-10">
-          <div className="flex items-center bg-ink-900 border border-ink-700 hover:border-ink-500 focus-within:border-gold-500 rounded-lg pl-4 pr-1.5 py-1.5 transition-colors duration-200">
+          <div className="flex items-center bg-slate-900 border border-slate-700 hover:border-slate-500 focus-within:border-blue-500 rounded-lg pl-4 pr-1.5 py-1.5 transition-colors duration-200">
 
-            <Search className="h-4 w-4 text-ink-500 mr-2.5 flex-shrink-0" />
+            <Search className="h-4 w-4 text-slate-500 mr-2.5 flex-shrink-0" />
 
             <input
               type="text"
@@ -70,7 +73,7 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required
-              className="flex-1 bg-transparent text-ink-50 placeholder-ink-500 text-sm py-2 focus:outline-none font-medium"
+              className="flex-1 bg-transparent text-slate-50 placeholder-slate-500 text-sm py-2 focus:outline-none font-medium"
             />
 
             {/* Parameters Toggle */}
@@ -79,8 +82,8 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
               onClick={() => setShowConfig(!showConfig)}
               className={`p-2 rounded-md mr-1 transition cursor-pointer ${
                 showConfig
-                  ? 'bg-ink-800 text-gold-400'
-                  : 'text-ink-500 hover:text-ink-200 hover:bg-ink-800'
+                  ? 'bg-slate-800 text-blue-400'
+                  : 'text-slate-500 hover:text-slate-200 hover:bg-slate-800'
               }`}
               title={t.advancedParams}
             >
@@ -91,11 +94,11 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
             <button
               type="submit"
               disabled={isLoading || !url.trim()}
-              className="bg-gold-600 hover:bg-gold-500 text-ink-950 font-semibold px-4 py-2 rounded-md text-xs sm:text-sm flex items-center gap-1.5 transition disabled:opacity-40 cursor-pointer"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-md text-xs sm:text-sm flex items-center gap-1.5 transition disabled:opacity-40 cursor-pointer"
             >
               {isLoading ? (
                 <div className="flex items-center gap-1.5">
-                  <div className="h-3.5 w-3.5 border-2 border-ink-950 border-t-transparent rounded-full animate-spin" />
+                  <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   <span>{t.searchingButton}</span>
                 </div>
               ) : (
@@ -109,10 +112,10 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
 
           {/* Parameters Dropdown */}
           {showConfig && (
-            <div className="mt-3 bg-ink-900 border border-ink-800 rounded-lg p-4 text-left shadow-xl animate-fadeIn">
+            <div className="mt-3 bg-slate-900 border border-slate-800 rounded-lg p-4 text-left shadow-xl animate-fadeIn">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block text-ink-300 font-semibold mb-1.5">
+                  <label className="block text-slate-300 font-semibold mb-1.5">
                     {t.targetPersonaLabel}
                   </label>
                   <input
@@ -120,11 +123,11 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
                     value={persona}
                     onChange={(e) => setPersona(e.target.value)}
                     placeholder={t.targetPersonaPlaceholder}
-                    className="w-full bg-ink-950 border border-ink-700 rounded-md px-3 py-2 text-ink-50 focus:outline-none focus:border-gold-500"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-slate-50 focus:outline-none focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-ink-300 font-semibold mb-1.5">
+                  <label className="block text-slate-300 font-semibold mb-1.5">
                     {t.sellerOfferLabel}
                   </label>
                   <input
@@ -132,7 +135,7 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
                     value={offer}
                     onChange={(e) => setOffer(e.target.value)}
                     placeholder={t.sellerOfferPlaceholder}
-                    className="w-full bg-ink-950 border border-ink-700 rounded-md px-3 py-2 text-ink-50 focus:outline-none focus:border-gold-500"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-slate-50 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               </div>
@@ -142,32 +145,32 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
 
         {/* Category Chips */}
         <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs">
-          <span className="text-ink-500 font-medium">{t.exploreExamples}</span>
+          <span className="text-slate-500 font-medium">{t.exploreExamples}</span>
 
           <button
             type="button"
             onClick={() => handleQuickDemo('shopify.com', language === 'es' ? 'VP de Marketing' : 'VP of Marketing', language === 'es' ? 'Optimización de conversión con IA' : 'AI CRO optimization')}
-            className="flex items-center gap-1.5 text-ink-300 hover:text-ink-50 border-b border-transparent hover:border-ink-500 pb-0.5 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-slate-300 hover:text-slate-50 border-b border-transparent hover:border-slate-500 pb-0.5 transition cursor-pointer"
           >
-            <ShoppingCart className="h-3.5 w-3.5 text-ink-500" />
+            <ShoppingCart className="h-3.5 w-3.5 text-slate-500" />
             <span>Shopify</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleQuickDemo('hubspot.com', language === 'es' ? 'Head de Ventas' : 'Head of Sales Operations', language === 'es' ? 'Aceleración de pipeline' : 'Pipeline acceleration')}
-            className="flex items-center gap-1.5 text-ink-300 hover:text-ink-50 border-b border-transparent hover:border-ink-500 pb-0.5 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-slate-300 hover:text-slate-50 border-b border-transparent hover:border-slate-500 pb-0.5 transition cursor-pointer"
           >
-            <Laptop className="h-3.5 w-3.5 text-ink-500" />
+            <Laptop className="h-3.5 w-3.5 text-slate-500" />
             <span>HubSpot</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleQuickDemo('deel.com', language === 'es' ? 'VP de Recursos Humanos' : 'VP of People / HR', language === 'es' ? 'Capacitación remota' : 'Remote team training')}
-            className="flex items-center gap-1.5 text-ink-300 hover:text-ink-50 border-b border-transparent hover:border-ink-500 pb-0.5 transition cursor-pointer"
+            className="flex items-center gap-1.5 text-slate-300 hover:text-slate-50 border-b border-transparent hover:border-slate-500 pb-0.5 transition cursor-pointer"
           >
-            <Briefcase className="h-3.5 w-3.5 text-ink-500" />
+            <Briefcase className="h-3.5 w-3.5 text-slate-500" />
             <span>Deel</span>
           </button>
         </div>
@@ -177,13 +180,13 @@ export const CompanyInput: React.FC<CompanyInputProps> = ({ onAnalyze, isLoading
       {/* How it works */}
       <div className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-4 max-w-2xl mx-auto">
         {steps.map((step, idx) => (
-          <div key={step.title} className="relative pl-4 sm:pl-0 sm:pt-4 border-l sm:border-l-0 sm:border-t border-ink-800">
+          <div key={step.title} className="relative pl-4 sm:pl-0 sm:pt-4 border-l sm:border-l-0 sm:border-t border-slate-800">
             <div className="flex items-center gap-2 mb-1.5">
-              <span className="font-mono text-[11px] text-gold-500">0{idx + 1}</span>
-              <step.icon className="h-3.5 w-3.5 text-ink-500" />
+              <span className="font-mono text-[11px] text-blue-500">0{idx + 1}</span>
+              <step.icon className="h-3.5 w-3.5 text-slate-500" />
             </div>
-            <h3 className="text-xs font-semibold text-ink-200">{step.title}</h3>
-            <p className="text-[11px] text-ink-500 mt-1 leading-relaxed">{step.desc}</p>
+            <h3 className="text-xs font-semibold text-slate-200">{step.title}</h3>
+            <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{step.desc}</p>
           </div>
         ))}
       </div>

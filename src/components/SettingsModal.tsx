@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { X, Key, ExternalLink, ShieldCheck, Check } from 'lucide-react';
+import type { Language } from '../i18n/translations';
+import { translations } from '../i18n/translations';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   apiKey: string;
   onSaveApiKey: (key: string) => void;
+  language: Language;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   apiKey,
-  onSaveApiKey
+  onSaveApiKey,
+  language
 }) => {
+  const t = translations[language].shell;
   const [currentKey, setCurrentKey] = useState(apiKey);
   const [saved, setSaved] = useState(false);
 
@@ -30,54 +35,54 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-ink-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-ink-900 border border-ink-800 rounded-lg max-w-md w-full p-6 shadow-2xl relative animate-scaleUp">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl relative animate-scaleUp">
 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-md text-ink-400 hover:text-ink-50 border border-ink-800 hover:border-ink-600 transition"
+          className="absolute top-5 right-5 p-2 rounded-md text-slate-400 hover:text-slate-50 border border-slate-800 hover:border-slate-600 transition cursor-pointer"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center gap-2 text-ink-50 font-display font-semibold text-base mb-1">
-          <Key className="h-4 w-4 text-gold-400" />
-          <span>Configuración de Inteligencia</span>
+        <div className="flex items-center gap-2 text-slate-50 font-display font-semibold text-base mb-1">
+          <Key className="h-4 w-4 text-blue-400" />
+          <span>{t.settingsTitle}</span>
         </div>
-        <p className="text-xs text-ink-500 mb-6">
-          Conecta tu API Key de Gemini para análisis en tiempo real ilimitados.
+        <p className="text-xs text-slate-500 mb-6">
+          {t.settingsDesc}
         </p>
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-ink-300 mb-1.5">
-              Google Gemini API Key
+            <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              {t.apiKeyLabel}
             </label>
             <input
               type="password"
               value={currentKey}
               onChange={(e) => setCurrentKey(e.target.value)}
               placeholder="AIzaSy..."
-              className="w-full bg-ink-950 border border-ink-700 focus:border-gold-500 rounded-md px-4 py-2.5 text-ink-100 placeholder-ink-600 text-xs focus:outline-none font-mono"
+              className="w-full bg-slate-950 border border-slate-700 focus:border-blue-500 rounded-md px-4 py-2.5 text-slate-100 placeholder-slate-600 text-xs focus:outline-none font-mono"
             />
           </div>
 
-          <div className="bg-ink-950 p-3 rounded-md border border-ink-800 text-[11px] text-ink-400 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-ink-300 font-medium">
-              <ShieldCheck className="h-4 w-4 text-teal-400" />
-              <span>Privacidad Total</span>
+          <div className="bg-slate-950 p-3 rounded-md border border-slate-800 text-[11px] text-slate-400 space-y-1.5">
+            <div className="flex items-center gap-1.5 text-slate-300 font-medium">
+              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <span>{t.apiKeyPrivacyTitle}</span>
             </div>
             <p>
-              Tu API key se almacena únicamente en tu navegador local (LocalStorage). Nunca pasa por ningún servidor intermediario.
+              {t.apiKeyPrivacyDesc}
             </p>
             <a
               href="https://aistudio.google.com/app/apikey"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-teal-400 hover:underline flex items-center gap-1 pt-1"
+              className="text-emerald-400 hover:underline flex items-center gap-1 pt-1"
             >
-              Obtener API Key gratuita en Google AI Studio
+              {t.apiKeyGetFree}
               <ExternalLink className="h-3 w-3" />
             </a>
           </div>
@@ -85,15 +90,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="pt-2">
             <button
               type="submit"
-              className="w-full bg-gold-600 hover:bg-gold-500 text-ink-950 font-semibold py-2.5 rounded-md text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-md text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
               {saved ? (
                 <>
                   <Check className="h-4 w-4" />
-                  <span>¡Guardado con éxito!</span>
+                  <span>{t.savedSuccess}</span>
                 </>
               ) : (
-                <span>Guardar Configuración</span>
+                <span>{t.saveSettings}</span>
               )}
             </button>
           </div>

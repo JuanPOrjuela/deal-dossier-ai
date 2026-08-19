@@ -72,3 +72,90 @@ export interface UserCredits {
   limit: number;
   isPro: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Cloud AIs suite: shared app identity
+// ---------------------------------------------------------------------------
+
+export type AppId = 'dealDossier' | 'contentForge' | 'talentPulse' | 'commerceLens';
+
+export type BundlePlanId = 'single' | 'allAccess' | 'lifetime';
+
+// ---------------------------------------------------------------------------
+// ContentForge AI
+// ---------------------------------------------------------------------------
+
+export type ContentChannel = 'linkedin' | 'twitter' | 'newsletter' | 'tiktok';
+
+export interface CarouselSlide {
+  slideNumber: number;
+  title: string;
+  body: string;
+}
+
+export interface ContentForgeData {
+  id: string;
+  createdAt: string;
+  topic: string;
+  channel: ContentChannel;
+  hooks: string[];
+  post: {
+    title: string;
+    body: string;
+  };
+  carousel: CarouselSlide[];
+  status: 'Borrador' | 'Programado' | 'Publicado';
+}
+
+// ---------------------------------------------------------------------------
+// TalentPulse AI
+// ---------------------------------------------------------------------------
+
+export interface RedFlag {
+  issue: string;
+  severity: 'Alta' | 'Media' | 'Baja';
+}
+
+export interface InterviewQuestion {
+  question: string;
+  whyAsk: string;
+}
+
+export interface TalentPulseData {
+  id: string;
+  createdAt: string;
+  jobTitle: string;
+  candidateName: string;
+  matchScore: number;
+  verdict: 'Fuerte Match' | 'Match Parcial' | 'No Recomendado';
+  strengths: string[];
+  redFlags: RedFlag[];
+  interviewQuestions: InterviewQuestion[];
+  status: 'Nuevo' | 'Entrevista Agendada' | 'Rechazado' | 'Contratado';
+}
+
+// ---------------------------------------------------------------------------
+// CommerceLens AI
+// ---------------------------------------------------------------------------
+
+export interface CompetitorComplaint {
+  issue: string;
+  frequency: 'Alta' | 'Media' | 'Baja';
+  quote: string;
+}
+
+export interface AttackAngle {
+  angle: string;
+  adCopy: string;
+}
+
+export interface CommerceLensData {
+  id: string;
+  createdAt: string;
+  competitorProduct: string;
+  yourProduct: string;
+  complaints: CompetitorComplaint[];
+  attackAngles: AttackAngle[];
+  productDescription: string;
+  status: 'Nuevo' | 'En Uso' | 'Archivado';
+}

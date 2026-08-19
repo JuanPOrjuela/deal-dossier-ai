@@ -1,11 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
+/*
+  Cloud AIs design system: stock Tailwind slate (neutrals) + blue/emerald/amber
+  (accents), dark by default. The .light class (toggled on <html>, see
+  src/App.tsx) flips the slate ramp and darkens the accent "-400" text steps
+  for contrast on light backgrounds, without touching component markup.
+*/
+.light {
+  --color-slate-950: oklch(98.4% 0.003 247.858);
+  --color-slate-900: oklch(96.8% 0.007 247.896);
+  --color-slate-800: oklch(92.9% 0.013 255.508);
+  --color-slate-700: oklch(86.9% 0.022 252.894);
+  --color-slate-600: oklch(70.4% 0.04 256.788);
+  --color-slate-500: oklch(55.4% 0.046 257.417);
+  --color-slate-400: oklch(44.6% 0.043 257.281);
+  --color-slate-300: oklch(37.2% 0.044 257.287);
+  --color-slate-200: oklch(27.9% 0.041 260.031);
+  --color-slate-100: oklch(20.8% 0.042 265.755);
+  --color-slate-50: oklch(12.9% 0.042 264.695);
+
+  --color-blue-400: oklch(48.8% 0.243 264.376);
+  --color-emerald-400: oklch(50.8% 0.118 165.612);
+  --color-amber-400: oklch(55.5% 0.163 48.998);
+}
+
+@theme inline {
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 @layer base {
   body {
-    background-color: #020617;
-    color: #f8fafc;
-    font-family: 'Public Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--color-slate-950);
+    color: var(--color-slate-100);
+    font-family: var(--font-sans);
+    transition: background-color 0.15s ease, color 0.15s ease;
   }
 }
 
@@ -20,10 +51,19 @@
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
 .animate-fadeIn {
   animation: fadeIn 0.25s ease-out forwards;
 }
 
 .animate-scaleUp {
   animation: scaleUp 0.2s ease-out forwards;
+}
+
+.animate-slideLeft {
+  animation: slideLeft 0.2s ease-out forwards;
 }
